@@ -29,8 +29,8 @@ pygame.display.set_caption("Robot Prediction Simulation")
 clock = pygame.time.Clock()
 
 # Initialize robots
-target_robot_pos = [400, 300]  # Starting position for target robot
-predictor_robot_pos = [200, 300]  # Starting position for predictor robot
+robotToPredictPos = [400, 300]  # Starting position for target robot
+ourRobotPos = [200, 300]  # Starting position for predictor robot
 target_velocity = [0, 0]  # Add velocity vector
 target_acceleration = [0, 0]
 current_speed = 0
@@ -52,52 +52,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # State machine for movement
-    if turning_state == "accelerating":
-
-        
-        # Accelerate in current direction
-        current_speed = min(current_speed + ACCELERATION, MAX_SPEED)
-        if change_direction_counter >= DIRECTION_CHANGE_INTERVAL:
-            turning_state = "decelerating"
-            next_angle = math.radians(random.randint(0, 360))
-            change_direction_counter = 0
-    
-    elif turning_state == "decelerating":
-
-        # Decelerate until slow enough to turn
-        current_speed = max(current_speed - DECELERATION, 0)
-        if current_speed <= TURN_SPEED_THRESHOLD:
-            turning_state = "turning"
-    
-    elif turning_state == "turning":
-        # Change direction and start accelerating again
-        target_velocity[0] = math.cos(next_angle)
-        target_velocity[1] = math.sin(next_angle)
-        turning_state = "accelerating"
-
     # Update velocity and position
-    target_robot_pos[0] += target_velocity[0] * current_speed
-    target_robot_pos[1] += target_velocity[1] * current_speed
-    
-    # Keep robot within screen bounds (with bounce)
-    if target_robot_pos[0] < ROBOT_SIZE:
-        target_robot_pos[0] = ROBOT_SIZE
-        target_velocity[0] *= -1
-    elif target_robot_pos[0] > WINDOW_SIZE[0] - ROBOT_SIZE:
-        target_robot_pos[0] = WINDOW_SIZE[0] - ROBOT_SIZE
-        target_velocity[0] *= -1
-    if target_robot_pos[1] < ROBOT_SIZE:
-        target_robot_pos[1] = ROBOT_SIZE
-        target_velocity[1] *= -1
-    elif target_robot_pos[1] > WINDOW_SIZE[1] - ROBOT_SIZE:
-        target_robot_pos[1] = WINDOW_SIZE[1] - ROBOT_SIZE
-        target_velocity[1] *= -1
+    robotToPredictPos[0] += target_velocity[0] * current_speed
+    robotToPredictPos[1] += target_velocity[1] * current_speed
 
     change_direction_counter += 1
 
     # Store target position
-    target_positions.append((target_robot_pos[0], target_robot_pos[1]))
+    target_positions.append((robotToPredictPos[0], robotToPredictPos[1]))
     # Keep only last 10 positions for prediction
     if len(target_positions) > 10:
         target_positions.pop(0)
@@ -105,11 +67,7 @@ while running:
     # Run prediction every robotReadingFPS frames
     frame_counter += 1
     if frame_counter >= (FPS // robotReadingFPS):  # Every 6 frames at 60 FPS
-        prediction = predictor.predict(
-            predictor_robot_pos,
-            target_positions,
-            timeStep=1.5  # Predict 0.5 seconds ahead
-        )
+        prediction = predictor.predict(ourRobotPos, target_positions, timeStep=1.5) # Predict 1.5 seconds ahead
         last_prediction = prediction
         frame_counter = 0
 
@@ -118,12 +76,12 @@ while running:
 
     # Draw target robot (red)
     pygame.draw.circle(screen, RED, 
-                      (int(target_robot_pos[0]), int(target_robot_pos[1])), 
+                      (int(robotToPredictPos[0]), int(robotToPredictPos[1])), 
                       ROBOT_SIZE)
 
     # Draw predictor robot (blue)
     pygame.draw.circle(screen, BLUE, 
-                      (int(predictor_robot_pos[0]), int(predictor_robot_pos[1])), 
+                      (int(ourRobotPos[0]), int(ourRobotPos[1])), 
                       ROBOT_SIZE)
 
     # Draw prediction point (green)
