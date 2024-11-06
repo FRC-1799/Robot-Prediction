@@ -99,9 +99,9 @@ while running:
 
     # Run prediction every robotReadingFPS frames
     frame_counter += 1
-    if frame_counter >= (FPS // robotReadingFPS):  # Every 6 frames at 60 FPS
-        prediction = predictor.predict(ourRobotPos, robotToPredictLoations, timeStep=1.5) # Predict 1.5 seconds ahead
-        last_prediction = prediction
+    if frame_counter >= (FPS // robotReadingFPS) :  # Every 6 frames at 60 FPS
+        slope, intercept = predictor.predict(ourRobotPos, robotToPredictLoations, timeStep=1.5) # Predict 1.5 seconds ahead
+        last_prediction = (slope, intercept)
         frame_counter = 0
 
     # Clear screen
@@ -118,10 +118,51 @@ while running:
                       ROBOT_SIZE)
 
     # Draw prediction point (green)
+    # if last_prediction:
+    #     pygame.draw.circle(screen, GREEN, 
+    #                       (int(last_prediction[0]), int(last_prediction[1])), 
+    #                       ROBOT_SIZE//2)
+
     if last_prediction:
-        pygame.draw.circle(screen, GREEN, 
-                          (int(last_prediction[0]), int(last_prediction[1])), 
-                          ROBOT_SIZE//2)
+        min_xPoints = min(predictor.xPoints)
+        max_xPoints = max(predictor.xPoints)
+
+        # Calculate the start and end points for the line of best fit
+        x_start = min_xPoints
+        x_end = max_xPoints
+
+        # Calculate corresponding y values using the slope and intercept
+        y_start = last_prediction[0] * robotToPredictPos[0] + last_prediction[1]  # y = mx + b
+        y_end = last_prediction[0] * x_end + last_prediction[1]    # y = mx + b
+
+        # Draw the line of best fit through the robot's current position
+        pygame.draw.line(screen, GREEN, 
+                         (int(robotToPredictPos[0]), WINDOW_SIZE[1] - int(robotToPredictPos[1])), 
+                         (int(x_end), WINDOW_SIZE[1] - int(y_end)), 2)
+
+        # Calculate min and max y points from robotToPredictLoations
+        if robotToPredictLoations:
+            min_yPoints = min(y for _, y in robotToPredictLoations)
+            max_yPoints = max(y for _, y in robotToPredictLoations)
+        else:
+            min_yPoints = 0  # Default value if no locations
+            max_yPoints = 0  # Default value if no locations
+
+        # for i in range(len(robotToPredictLoations)):
+        #     if max_xPoints != min_xPoints:
+        #         x = (robotToPredictLoations[i][0] - min_xPoints) * (WINDOW_SIZE[0] / (max_xPoints - min_xPoints))
+        #     else:
+        #         x = robotToPredictLoations[i][0]  # Fallback to original position if no range
+
+        #     if max_yPoints != min_yPoints:
+        #         y = WINDOW_SIZE[1] - (robotToPredictLoations[i][1] - min_yPoints) * (WINDOW_SIZE[1] / (max_yPoints - min_yPoints))
+        #     else:
+        #         y = robotToPredictLoations[i][1]  # Fallback to original position if no range
+
+        #     pygame.draw.circle(screen, (0, 255, 0), (int(x), int(y)), 5)
+
+
+
 
     # Draw target's path
     if len(robotToPredictLoations) > 1:
