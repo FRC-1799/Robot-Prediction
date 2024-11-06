@@ -11,8 +11,9 @@ class RobotPredictor:
     def predict(self, location, otherRobotLocations, timeStep):
         self.location = location
         self.otherRobotLocations = otherRobotLocations
+        
 
-        # How far ahead to predict the other robot's location (in frames)
+        # # How far ahead to predict the other robot's location (in frames)
         framesToPredict = self.fps * timeStep # timeStep is in seconds
 
         if len(self.otherRobotLocations) >= 2:
