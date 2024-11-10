@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
+from pykalman import KalmanFilter
 
 class RobotPredictor:
     def __init__(self, videoFPS):
@@ -13,25 +14,34 @@ class RobotPredictor:
         self.otherRobotLocations = otherRobotLocations
 
         if len(self.otherRobotLocations) >= 2:
-            # Prepare the data for polynomial regression
-            x_points = np.array([coord[0] for coord in self.otherRobotLocations]).reshape(-1, 1)
-            y_points = np.array([coord[1] for coord in self.otherRobotLocations]).reshape(-1, 1)
+            predictions = []  # To store predictions for each robot
 
-            # Create polynomial features
-            degree = 6  # You can adjust the degree as needed
-            poly_features = PolynomialFeatures(degree=degree)
-            x_poly = poly_features.fit_transform(x_points)
+            for robot_location in self.otherRobotLocations:
+                # Prepare the data for Kalman filter for each robot
+                kf = KalmanFilter(initial_state_mean=np.array([robot_location[0], robot_location[1], 0, 0]),
+                                initial_state_covariance=np.eye(4) * 1000,
+                                transition_matrices=np.array([[1, 0, timeStep, 0],
+                                                                [0, 1, 0, timeStep],
+                                                                [0, 0, 1, 0],
+                                                                [0, 0, 0, 1]]),
+                                observation_matrices=np.array([[1, 0, 0, 0],
+                                                                [0, 1, 0, 0]]))
 
-            # Fit the polynomial regression model
-            model = LinearRegression()
-            model.fit(x_poly, y_points)
+                # Use only the x and y positions as observations
+                measurements = np.array([[loc[0], loc[1]] for loc in self.otherRobotLocations])
+                kf = kf.em(measurements, n_iter=10)  # Estimate the parameters
+                (filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
 
-            # Predict the next position based on the last x value
-            last_x = x_points[-1][0]
-            next_x = last_x + timeStep  # Predicting the next position after timeStep
-            next_x_poly = poly_features.transform(np.array([[next_x]]))  # Transform to polynomial features
-            predicted_y = model.predict(next_x_poly)
+                print(filtered_state_means)
 
-            return next_x, predicted_y[0][0]  # Return the predicted (x, y) position
+                # Ensure the dimensions match for the smooth function
+                if filtered_state_means.shape[1] == 4:  # Check if the state has 4 dimensions
+                    next_state_mean = kf.smooth(filtered_state_means)[0][-1]
+                    predictions.append((next_state_mean[0], next_state_mean[1]))  # Store the predicted (x, y) position
+                else:
+                    raise ValueError("Filtered state means do not have the expected shape.")
+
+            return predictions  # Return all predictions for each robot
 
         return None  # Return None if we don't have enough positions to make a prediction
+

@@ -108,9 +108,9 @@ while running:
 
     # Predict the next position of the target robot
     frame_counter += 1
-    if frame_counter >= (FPS // robotReadingFPS) and predictor.predict(location=ourRobotPos, otherRobotLocations=robotToPredictLocations, timeStep=1.5) != None:  # Every 6 frames at 60 FPS
+    if frame_counter >= (FPS // robotReadingFPS):  # Every 6 frames at 60 FPS
         frame_counter = 0
-        predicted_position = predictor.predict(location=ourRobotPos, otherRobotLocations=robotToPredictLocations, timeStep=6)
+        predicted_position = predictor.predict(location=ourRobotPos, otherRobotLocations=robotToPredictLocations, timeStep=2)
 
     if predicted_position:
         predicted_x, predicted_y = predicted_position
