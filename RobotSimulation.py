@@ -45,6 +45,18 @@ predicted_position = None
 changeX, changeY = 0, 0
 accelX, accelY = 0, 0
 
+# Function to convert graph coordinates to screen coordinates
+def to_screen(x, y, x_values, y_values, width, height):
+    if max(x_values) == min(x_values) or max(y_values) == min(y_values):
+        return x, y  # Return original coordinates if no range exists
+    scale_x = width / (max(x_values) - min(x_values))
+    scale_y = height / (max(y_values) - min(y_values))
+    screen_x = (x - min(x_values)) * scale_x
+    screen_y = height - (y - min(y_values)) * scale_y
+    return screen_x, screen_y
+
+
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -79,6 +91,7 @@ while running:
         # Normalize the changeX and multiply it with the max_speed.
         if changeX != 0:
             changeX = changeX / abs(changeX) * MAX_SPEED
+
         if changeY != 0:  # Check to avoid division by zero
             changeY = changeY / abs(changeY) * MAX_SPEED
 
@@ -98,7 +111,6 @@ while running:
     if len(robotToPredictLocations) > 10:
         robotToPredictLocations.pop(0)
 
-    # Clear screen
     screen.fill(WHITE)
 
     # Draw target robot (red)
@@ -108,22 +120,20 @@ while running:
 
     # Predict the next position of the target robot
     frame_counter += 1
-    if frame_counter >= (FPS // robotReadingFPS):  # Every 6 frames at 60 FPS
+    if frame_counter >= (FPS // robotReadingFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
         frame_counter = 0
         predicted_position = predictor.predict(location=ourRobotPos, otherRobotLocations=robotToPredictLocations, timeStep=2)
+        coefficientA, coefficientB, coefficientC = predicted_position[0], predicted_position[1], predicted_position[2]
+        robotToPredictXValues = predictor.return_xy_values()[0]
+        robotToPredictYValues = predictor.return_xy_values()[1]
 
-    if predicted_position:
-        predicted_x, predicted_y = predicted_position
+        for i in range(len(robotToPredictXValues) - 1):
+            pygame.draw.line(screen, GREEN, 
+                             to_screen(robotToPredictXValues[i], robotToPredictYValues[i], robotToPredictXValues, robotToPredictYValues, WINDOW_SIZE[0], WINDOW_SIZE[1]),
+                             to_screen(robotToPredictXValues[i+1], robotToPredictYValues[i+1], robotToPredictXValues, robotToPredictYValues, WINDOW_SIZE[0], WINDOW_SIZE[1]), 3)
 
-        # Draw prediction point (green) in front of the robot
-        pygame.draw.circle(screen, GREEN, 
-                          (int(predicted_x), int(predicted_y)), 
-                          ROBOT_SIZE // 2)
 
-        # Optionally, draw a line from the current position to the predicted position
-        pygame.draw.line(screen, GREEN, 
-                         (int(robotToPredictPos[0]), int(robotToPredictPos[1])), 
-                         (int(predicted_x), int(predicted_y)), 2)
+
 
     # Draw predictor robot (blue) after the prediction
     pygame.draw.circle(screen, BLUE, 
