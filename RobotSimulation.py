@@ -40,10 +40,12 @@ predictor = RobotPredictor(robotReadingFPS)
 
 frame_counter = 0
 
-predicted_position = None
+coefficients = None
 
 changeX, changeY = 0, 0
 accelX, accelY = 0, 0
+
+time_step = 2 # amout of time to go ahead by
 
 # Function to convert graph coordinates to screen coordinates
 def to_screen(x, y, x_values, y_values, width, height):
@@ -122,15 +124,15 @@ while running:
     frame_counter += 1
     if frame_counter >= (FPS // robotReadingFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
         frame_counter = 0
-        predicted_position = predictor.predict(location=ourRobotPos, otherRobotLocations=robotToPredictLocations, timeStep=2)
-        coefficientA, coefficientB, coefficientC = predicted_position[0], predicted_position[1], predicted_position[2]
+        coefficients = predictor.predict(location=ourRobotPos, otherRobotLocations=robotToPredictLocations, timeStep=2)
+        coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0], coefficients[1], coefficients[2], coefficients[3]
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
 
         for i in range(len(robotToPredictXValues) - 1):
             pygame.draw.line(screen, GREEN, 
-                             to_screen(robotToPredictXValues[i], robotToPredictYValues[i], robotToPredictXValues, robotToPredictYValues, WINDOW_SIZE[0], WINDOW_SIZE[1]),
-                             to_screen(robotToPredictXValues[i+1], robotToPredictYValues[i+1], robotToPredictXValues, robotToPredictYValues, WINDOW_SIZE[0], WINDOW_SIZE[1]), 3)
+                             (robotToPredictPos[0], robotToPredictPos[1]),
+                             (predictedRobotPosition[0], 4), 3)
 
 
 

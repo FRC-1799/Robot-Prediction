@@ -20,8 +20,9 @@ class RobotPredictor:
             self.robotToPredictY = [xPositions[1] for xPositions in otherRobotLocations]
 
             self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, 2)
+            self.predictedPosition = self.coefficients[0] * timeStep**2 + self.coefficients[1] * timeStep + self.coefficients[2]
 
-            return self.coefficients
+            return self.coefficients, self.predictedPosition
         
         return None  # Return None if we don't have enough positions to make a prediction
         
