@@ -2,6 +2,7 @@ import pygame
 import math
 import random
 from RobotPredictor import RobotPredictor
+from AccuracyCheck import AccuracyCheck  # Import the AccuracyCheck class
 
 # Initialize Pygame
 pygame.init()
@@ -11,6 +12,7 @@ WINDOW_SIZE = (800, 600)
 FPS = 60
 robotReadingFPS = 10
 ROBOT_SIZE = 20
+PREDICTION_SIZE = ROBOT_SIZE
 MAX_SPEED = 5.0  # Maximum speed
 ACCELERATION_FACTOR = 0.1  # Acceleration rate
 DECELERATION = 0.92  # Deceleration rate
@@ -29,14 +31,15 @@ pygame.display.set_caption("Robot Prediction Simulation")
 clock = pygame.time.Clock()
 
 # Initialize robots
-robotToPredictPos = [400, 300]  # Starting position for target robot
+robotToPredictPos = [0, 0]  # Starting position for target robot
 ourRobotPos = [200, 300]  # Starting position for predictor robot
 
 change_direction_counter = 0
 robotToPredictLoations = []  # Stores the robot to predict's locations
 
-# Initialize predictor
+# Initialize predictor and accuracy check
 predictor = RobotPredictor(robotReadingFPS)
+accuracy_check = AccuracyCheck(ourRobotPos)  # Create an instance of AccuracyCheck
 
 # Add near the other initializations
 frame_counter = 0
@@ -123,14 +126,26 @@ while running:
     if last_prediction:
         pygame.draw.circle(screen, GREEN, 
                           (int(last_prediction[0]), int(last_prediction[1])), 
-                          ROBOT_SIZE//2)
+                          PREDICTION_SIZE)
 
     # Draw target's path
     if len(robotToPredictLoations) > 1:
         pygame.draw.lines(screen, GREEN, False, 
                          [(int(x), int(y)) for x, y in robotToPredictLoations], 2)
 
+    # A* pathfinding
+    if last_prediction:
+        predicted_robot_position = (int(last_prediction[0]), int(last_prediction[1]))  # Use as a tuple
+        target_position = (600, 300)  # Example target position
+        obstacles = [predicted_robot_position]  # Create a list of obstacles
+
+        path = accuracy_check.astar(tuple(ourRobotPos), target_position, predicted_robot_position)  # Pass obstacles as a list
+
+        # Draw the path found by A*
+        if path:
+            pygame.draw.lines(screen, BLUE, False, path, 2)
+
     pygame.display.flip()
     clock.tick(FPS)
 
-pygame.quit() 
+pygame.quit()
