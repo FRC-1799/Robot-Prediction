@@ -47,18 +47,6 @@ accelX, accelY = 0, 0
 
 time_step = 2 # amout of time to go ahead by
 
-# Function to convert graph coordinates to screen coordinates
-def to_screen(x, y, x_values, y_values, width, height):
-    if max(x_values) == min(x_values) or max(y_values) == min(y_values):
-        return x, y  # Return original coordinates if no range exists
-    scale_x = width / (max(x_values) - min(x_values))
-    scale_y = height / (max(y_values) - min(y_values))
-    screen_x = (x - min(x_values)) * scale_x
-    screen_y = height - (y - min(y_values)) * scale_y
-    return screen_x, screen_y
-
-
-
 running = True
 while running:
     for event in pygame.event.get():
@@ -125,7 +113,7 @@ while running:
     if frame_counter >= (FPS // robotReadingFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
         frame_counter = 0
         coefficients = predictor.predict(location=ourRobotPos, otherRobotLocations=robotToPredictLocations, timeStep=2)
-        coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0], coefficients[1], coefficients[2], coefficients[3]
+        coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0][0], coefficients[0][1], coefficients[0][2], coefficients[1]
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
 
