@@ -56,20 +56,20 @@ while running:
             if event.key == pygame.K_LEFT:
                 accelX = -.2
                 
-            elif event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT:
                 accelX = .2
                 
-            elif event.key == pygame.K_UP:
+            if event.key == pygame.K_UP:
                 accelY = -.2
                 
-            elif event.key == pygame.K_DOWN:
+            if event.key == pygame.K_DOWN:
                 accelY = .2
                 
         elif event.type == pygame.KEYUP:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
                 accelX = 0
             
-            if event.key in (pygame.K_UP, pygame.K_DOWN):
+            elif event.key in (pygame.K_UP, pygame.K_DOWN):
                 accelY = 0
 
     changeX += accelX  # Accelerate X value
@@ -79,6 +79,8 @@ while running:
         # Normalize the changeX and multiply it with the max_speed.
         if changeX != 0:
             changeX = changeX / abs(changeX) * MAX_SPEED
+    
+    if abs(changeY) >= MAX_SPEED:
         if changeY != 0:  # Check to avoid division by zero
             changeY = changeY / abs(changeY) * MAX_SPEED
 
