@@ -11,16 +11,21 @@ class RobotPredictor:
 
         return True if self.robotToPredictPos else False
 
+    def slope(self, x1, x2, y1, y2):
+        return (y1 - y1) / (x2 - x1)
+
     def predict(self, location, otherRobotLocations, timeStep):
         self.robotToPredictPos = otherRobotLocations
 
         if len(self.robotToPredictPos) >= 2:
             self.location = location
             self.robotToPredictX = [xPositions[0] for xPositions in otherRobotLocations]
-            self.robotToPredictY = [xPositions[1] for xPositions in otherRobotLocations]
+            self.robotToPredictY = [yPositions[1] for yPositions in otherRobotLocations]
 
             self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, 2)
-            self.predictedPosition = self.coefficients[0] * timeStep**2 + self.coefficients[1] * timeStep + self.coefficients[2]
+            xVelocity = self.robotToPredictX[-1] - self.robotToPredictX[-2]
+            predictedXPostition = xVelocity * timeStep
+            self.predictedPosition = self.coefficients[0] * predictedXPostition**2 + self.coefficients[1] * predictedXPostition + self.coefficients[2]
 
             return self.coefficients, self.predictedPosition
         
