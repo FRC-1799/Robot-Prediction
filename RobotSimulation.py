@@ -12,7 +12,7 @@ pygame.init()
 # Constants
 WINDOW_SIZE = (800, 600)
 FPS = 60
-robotReadingFPS = 10
+robotReadingFPS = 2
 ROBOT_SIZE = 20
 MAX_SPEED = 5.0  # Maximum speed
 ACCELERATION_FACTOR = 0.1  # Acceleration rate
@@ -45,7 +45,7 @@ coefficients = None
 changeX, changeY = 0, 0
 accelX, accelY = 0, 0
 
-time_step = 2 # amout of time to go ahead by
+time_step = 3 # amout of time to go ahead by
 
 running = True
 while running:
@@ -57,31 +57,32 @@ while running:
             # Set the acceleration value.
             if event.key == pygame.K_LEFT:
                 accelX = -.2
-                
+
             elif event.key == pygame.K_RIGHT:
                 accelX = .2
-                
+
             elif event.key == pygame.K_UP:
                 accelY = -.2
-                
+
             elif event.key == pygame.K_DOWN:
                 accelY = .2
-                
+
         elif event.type == pygame.KEYUP:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
                 accelX = 0
-            
+
             if event.key in (pygame.K_UP, pygame.K_DOWN):
                 accelY = 0
 
     changeX += accelX  # Accelerate X value
     changeY += accelY  # Accelerate Y value
-    
+
     if abs(changeX) >= MAX_SPEED:  # If max_speed is exceeded.
         # Normalize the changeX and multiply it with the max_speed.
         if changeX != 0:
             changeX = changeX / abs(changeX) * MAX_SPEED
 
+    if abs(changeY) >= MAX_SPEED:  # If max_speed is exceeded.
         if changeY != 0:  # Check to avoid division by zero
             changeY = changeY / abs(changeY) * MAX_SPEED
 
@@ -112,15 +113,14 @@ while running:
     frame_counter += 1
     if frame_counter >= (FPS // robotReadingFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
         frame_counter = 0
-        coefficients = predictor.predict(location=ourRobotPos, otherRobotLocations=robotToPredictLocations, timeStep=2)
+        coefficients = predictor.predict(ourRobotPos, robotToPredictLocations, time_step, clock.get_time())
         coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0][0], coefficients[0][1], coefficients[0][2], coefficients[1]
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
 
-        for i in range(len(robotToPredictXValues) - 1):
-            pygame.draw.line(screen, GREEN, 
-                             (robotToPredictPos[0], robotToPredictPos[1]),
-                             (predictedRobotPosition[0], 4), 3)
+
+        pygame.draw.circle(screen, GREEN, (int(predictedRobotPosition[0]), int(predictedRobotPosition[1])), ROBOT_SIZE)
+        
 
 
 
@@ -132,5 +132,5 @@ while running:
 
     pygame.display.flip()
     clock.tick(FPS)
-
+predictor.plot_graph()
 pygame.quit()
