@@ -39,34 +39,3 @@ class RobotPredictor:
     def return_xy_values(self):
         return (self.robotToPredictX, self.robotToPredictY)
 
-    def plot_graph(self):
-        """
-        Plots the actual and predicted positions of the robot.
-        """
-        if not self.robotToPredictPos:
-            print("No data available to plot.")
-            return
-
-        # Get the actual x and y positions of the robot
-        actualX, actualY = self.return_xy_values()
-
-        # Plot the actual positions
-        plt.plot(actualX, actualY, label="Actual Path", color="blue", marker="o")
-
-        # If prediction exists, plot the predicted path
-        if hasattr(self, 'predictedPosition'):
-            predictedX = self.predictedPosition[0]
-            predictedY = self.predictedPosition[1]
-            plt.scatter(predictedX, predictedY, color="red", label="Predicted Position")
-
-            # Plot the trajectory predicted by the polynomial fit (if available)
-            x_vals = np.linspace(min(actualX), max(actualX), 100)
-            y_vals = np.polyval(self.coefficients, x_vals)
-            plt.plot(x_vals, y_vals, label="Predicted Trajectory", color="green", linestyle="--")
-
-        plt.title("Robot Path Prediction")
-        plt.xlabel("X Position")
-        plt.ylabel("Y Position")
-        plt.legend()
-        plt.grid(True)
-        plt.show()
