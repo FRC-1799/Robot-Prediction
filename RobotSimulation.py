@@ -11,8 +11,8 @@ pygame.init()
 
 # Constants
 WINDOW_SIZE = (800, 600)
-FPS = 60
-robotReadingFPS = 10
+FPS = 10
+robotReadingFPS = 2
 ROBOT_SIZE = 20
 MAX_SPEED = 5.0  # Maximum speed
 ACCELERATION_FACTOR = 0.1  # Acceleration rate
@@ -45,9 +45,17 @@ coefficients = None
 changeX, changeY = 0, 0
 accelX, accelY = 0, 0
 
-time_step = 3 # amout of time to go ahead by
+time_step = 6 # amout of time to go ahead by
 
 lastPrediction = []
+
+def draw_parabola(coefficients, screen, color, step=1):
+    """Draws a parabola based on the given coefficients."""
+    for x in range(0, WINDOW_SIZE[0], step):
+        # Calculate the y value using the quadratic formula: y = Ax^2 + Bx + C
+        y = coefficients[0] * (x ** 2) + coefficients[1] * x + coefficients[2]
+        if 0 <= y < WINDOW_SIZE[1]:  # Ensure the y value is within the window
+            pygame.draw.circle(screen, color, (x, int(y)), 1)  # Draw a point on the parabola
 
 running = True
 while running:
@@ -120,6 +128,8 @@ while running:
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
 
+        draw_parabola([coefficientA, coefficientB, coefficientC], screen, GREEN)
+
         lastPrediction = predictedRobotPosition
 
 
@@ -134,6 +144,9 @@ while running:
     pygame.draw.circle(screen, BLUE, 
                       (int(ourRobotPos[0]), int(ourRobotPos[1])), 
                       ROBOT_SIZE)
+
+    # Draw the parabola based on the coefficients
+    
 
     pygame.display.flip()
     clock.tick(FPS)

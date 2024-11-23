@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import RankWarning
 import matplotlib.pyplot as plt
 import math
 
@@ -14,6 +15,21 @@ class RobotPredictor:
 
     def distance_formula(self, x1, x2, y1, y2):
         return math.sqrt((x2-x1)**2 + (y2-y1)**2)
+    
+    def correlation_coefficeint(self, maxDegree, xValues, yValues):
+        listOfCorrelationCoefficents = []
+
+        for degree in range(1, maxDegree):
+            coefficients = np.polyfit(xValues, yValues, degree)
+
+            # Calculate the fitted values
+            y_fit = np.polyval(coefficients, xValues)
+            
+            # Compute the correlation coefficient
+            correlationMatrix = np.corrcoef(yValues, y_fit)
+            correlationCoefficient = correlationMatrix[0, 1]
+
+            listOfCorrelationCoefficents.append(correlationCoefficient)
 
     def predict(self, location, otherRobotLocations, timeStep, timePassed):
         self.robotToPredictPos = otherRobotLocations
@@ -26,14 +42,12 @@ class RobotPredictor:
             self.robotToPredictX = [xPositions[0] for xPositions in otherRobotLocations]
             self.robotToPredictY = [yPositions[1] for yPositions in otherRobotLocations]
 
-
             self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, 2)
 
             currentXPosition = self.robotToPredictX[-1]
             lastXPosition = self.robotToPredictX[-2]
             currentYPosition = self.robotToPredictY[-1]
             lastYPosition = self.robotToPredictY[-2]
-
             
 
             distanceBetweenTheTwoVariables = self.distance_formula(lastXPosition, currentXPosition, lastYPosition, currentYPosition)
