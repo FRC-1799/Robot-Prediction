@@ -1,140 +1,75 @@
-import pygame
-import math
-import random
 import numpy as np
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-from RobotPredictor import RobotPredictor
+import matplotlib.pyplot as plt
+import math
 
-# Initialize Pygame
-pygame.init()
+class RobotPredictor:
+    def __init__(self, videoFPS):
+        self.fps = videoFPS
+        self.location = (0, 0)
+        self.robotToPredictPos = []  # list of tuples (x, y) of the robot that we want to predict's location
 
-# Constants
-WINDOW_SIZE = (800, 600)
-FPS = 60
-robotReadingFPS = 10
-ROBOT_SIZE = 20
-MAX_SPEED = 5.0  # Maximum speed
-ACCELERATION_FACTOR = 0.1  # Acceleration rate
-DECELERATION = 0.92  # Deceleration rate
+    def able_to_predict(self, importedPositions):
+        self.robotToPredictPos = importedPositions
+        return True if self.robotToPredictPos else False
 
-# Colors
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
+    def distance_formula(self, x1, x2, y1, y2):
+        return math.sqrt((x2-x1)**2 + (y2-y1)**2)
 
-# Set up display
-screen = pygame.display.set_mode(WINDOW_SIZE)
-pygame.display.set_caption("Robot Prediction Simulation")
-clock = pygame.time.Clock()
+    def predict(self, location, otherRobotLocations, timeStep, timePassed):
+        self.robotToPredictPos = otherRobotLocations
+        total_velocity_x = 0
+        total_velocity_y = 0
+        num_velocities = 0
 
-# Initialize robots
-robotToPredictPos = [400, 300]  # Starting position for target robot
-ourRobotPos = [200, 300]  # Starting position for predictor robot
-
-robotToPredictLocations = []  # Stores the robot to predict's locations
-
-# Initialize predictor
-predictor = RobotPredictor(robotReadingFPS)
-
-frame_counter = 0
-
-coefficients = None
-
-changeX, changeY = 0, 0
-accelX, accelY = 0, 0
-
-time_step = 3 # amout of time to go ahead by
-
-lastPrediction = []
-
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-        elif event.type == pygame.KEYDOWN:
-            # Set the acceleration value.
-            if event.key == pygame.K_LEFT:
-                accelX = -.2
-
-            elif event.key == pygame.K_RIGHT:
-                accelX = .2
-
-            elif event.key == pygame.K_UP:
-                accelY = -.2
-
-            elif event.key == pygame.K_DOWN:
-                accelY = .2
-
-        elif event.type == pygame.KEYUP:
-            if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                accelX = 0
-
-            if event.key in (pygame.K_UP, pygame.K_DOWN):
-                accelY = 0
-
-    changeX += accelX  # Accelerate X value
-    changeY += accelY  # Accelerate Y value
-
-    if abs(changeX) >= MAX_SPEED:  # If max_speed is exceeded.
-        # Normalize the changeX and multiply it with the max_speed.
-        if changeX != 0:
-            changeX = changeX / abs(changeX) * MAX_SPEED
-
-    if abs(changeY) >= MAX_SPEED:  # If max_speed is exceeded.
-        if changeY != 0:  # Check to avoid division by zero
-            changeY = changeY / abs(changeY) * MAX_SPEED
-
-    # Decelerate if no key is pressed.
-    if accelX == 0:
-        changeX *= DECELERATION
-    if accelY == 0:
-        changeY *= DECELERATION
-
-    robotToPredictPos[0] += changeX  # Move the object.
-    robotToPredictPos[1] += changeY
-
-    # Store target position
-    robotToPredictLocations.append((robotToPredictPos[0], robotToPredictPos[1]))
-
-    # Keep only the last 10 positions for prediction
-    if len(robotToPredictLocations) > 10:
-        robotToPredictLocations.pop(0)
-
-    screen.fill(WHITE)
-
-    # Draw target robot (red)
-    pygame.draw.circle(screen, RED, 
-                      (int(robotToPredictPos[0]), int(robotToPredictPos[1])), 
-                      ROBOT_SIZE)
-
-    # Predict the next position of the target robot
-    frame_counter += 1
-    if frame_counter >= (FPS // robotReadingFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
-        frame_counter = 0
-        coefficients = predictor.predict(ourRobotPos, robotToPredictLocations, time_step, clock.get_time())
-        coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0][0], coefficients[0][1], coefficients[0][2], coefficients[1]
-        robotToPredictXValues = predictor.return_xy_values()[0]
-        robotToPredictYValues = predictor.return_xy_values()[1]
-
-        lastPrediction = predictedRobotPosition
+        if len(self.robotToPredictPos) >= 2:
+            self.location = location
+            self.robotToPredictX = [xPositions[0] for xPositions in otherRobotLocations]
+            self.robotToPredictY = [yPositions[1] for yPositions in otherRobotLocations]
 
 
-        # pygame.draw.circle(screen, GREEN, (int(predictedRobotPosition[0]), int(predictedRobotPosition[1])), ROBOT_SIZE)
+            self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, 2)
 
+            currentXPosition = self.robotToPredictX[-1]
+            lastXPosition = self.robotToPredictX[-2]
+            currentYPosition = self.robotToPredictY[-1]
+            lastYPosition = self.robotToPredictY[-2]
 
-    if lastPrediction:
-        pygame.draw.circle(screen, GREEN, (int(lastPrediction[0]), int(lastPrediction[1])), ROBOT_SIZE)
+            
 
+            distanceBetweenTheTwoVariables = self.distance_formula(lastXPosition, currentXPosition, lastYPosition, currentYPosition)
 
-    # Draw predictor robot (blue) after the prediction
-    pygame.draw.circle(screen, BLUE, 
-                      (int(ourRobotPos[0]), int(ourRobotPos[1])), 
-                      ROBOT_SIZE)
+            divisor = timePassed / timeStep
 
-    pygame.display.flip()
-    clock.tick(FPS)
-pygame.quit()
+            predictedXPostition = divisor * distanceBetweenTheTwoVariables
+
+            # print(predictedXPostition)
+
+            velocityX = currentXPosition - lastXPosition
+            accelerationInXDirection = velocityX / timePassed
+
+            # # Calculate average velocity
+
+            predictedXPostition = currentXPosition + velocityX * timeStep + (1/2 * accelerationInXDirection) * timeStep**2
+
+            
+
+            
+
+            
+            # # Calculate the distance between the last two positions
+            
+            
+
+            # # Predict future position using the LAST position of the target robot
+            # latest_pos = self.robotToPredictPos[-1]
+
+            predictedYPosition = self.coefficients[0] * predictedXPostition**2 + self.coefficients[1] * predictedXPostition + self.coefficients[2]
+
+            self.predictedPosition = (predictedXPostition, predictedYPosition)
+
+            return (self.coefficients, self.predictedPosition)
+
+        return None  # Return None if we don't have enough positions to make a prediction
+
+    def return_xy_values(self):
+        return (self.robotToPredictX, self.robotToPredictY)
