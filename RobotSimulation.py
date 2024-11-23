@@ -12,7 +12,7 @@ pygame.init()
 # Constants
 WINDOW_SIZE = (800, 600)
 FPS = 60
-robotReadingFPS = 2
+robotReadingFPS = 10
 ROBOT_SIZE = 20
 MAX_SPEED = 5.0  # Maximum speed
 ACCELERATION_FACTOR = 0.1  # Acceleration rate
@@ -46,6 +46,8 @@ changeX, changeY = 0, 0
 accelX, accelY = 0, 0
 
 time_step = 3 # amout of time to go ahead by
+
+lastPrediction = []
 
 running = True
 while running:
@@ -118,11 +120,14 @@ while running:
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
 
-
-        pygame.draw.circle(screen, GREEN, (int(predictedRobotPosition[0]), int(predictedRobotPosition[1])), ROBOT_SIZE)
-        
+        lastPrediction = predictedRobotPosition
 
 
+        # pygame.draw.circle(screen, GREEN, (int(predictedRobotPosition[0]), int(predictedRobotPosition[1])), ROBOT_SIZE)
+
+
+    if lastPrediction:
+        pygame.draw.circle(screen, GREEN, (int(lastPrediction[0]), int(lastPrediction[1])), ROBOT_SIZE)
 
 
     # Draw predictor robot (blue) after the prediction
