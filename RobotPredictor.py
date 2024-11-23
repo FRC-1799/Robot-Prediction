@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 class RobotPredictor:
     def __init__(self, videoFPS):
@@ -11,11 +12,14 @@ class RobotPredictor:
         self.robotToPredictPos = importedPositions
         return True if self.robotToPredictPos else False
 
-    def slope(self, x1, x2, y1, y2):
-        return (y1 - y1) / (x2 - x1)
+    def distance_formula(self, x1, x2, y1, y2):
+        return math.sqrt((x2-x1)**2 + (y2-y1)**2)
 
     def predict(self, location, otherRobotLocations, timeStep, timePassed):
         self.robotToPredictPos = otherRobotLocations
+        total_velocity_x = 0
+        total_velocity_y = 0
+        num_velocities = 0
 
         if len(self.robotToPredictPos) >= 2:
             self.location = location
@@ -24,11 +28,42 @@ class RobotPredictor:
 
 
             self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, 2)
-            xVelocity = (self.robotToPredictX[-1] - self.robotToPredictX[-2]) / timePassed
-            predictedXPostition = xVelocity * timeStep
-            predictedYPosition = self.coefficients[0] * predictedXPostition**2 + self.coefficients[1] * predictedXPostition + self.coefficients[2]
 
-            print(predictedXPostition)
+            currentXPosition = self.robotToPredictX[-1]
+            lastXPosition = self.robotToPredictX[-2]
+            currentYPosition = self.robotToPredictY[-1]
+            lastYPosition = self.robotToPredictY[-2]
+
+            
+
+            distanceBetweenTheTwoVariables = self.distance_formula(lastXPosition, currentXPosition, lastYPosition, currentYPosition)
+
+            divisor = timePassed / timeStep
+
+            predictedXPostition = divisor * distanceBetweenTheTwoVariables
+
+            # print(predictedXPostition)
+
+            velocityX = currentXPosition - lastXPosition
+            accelerationInXDirection = velocityX / timePassed
+
+            # # Calculate average velocity
+
+            predictedXPostition = currentXPosition + velocityX * timeStep + (1/2 * accelerationInXDirection) * timeStep**2
+
+            
+
+            
+
+            
+            # # Calculate the distance between the last two positions
+            
+            
+
+            # # Predict future position using the LAST position of the target robot
+            # latest_pos = self.robotToPredictPos[-1]
+
+            predictedYPosition = self.coefficients[0] * predictedXPostition**2 + self.coefficients[1] * predictedXPostition + self.coefficients[2]
 
             self.predictedPosition = (predictedXPostition, predictedYPosition)
 
@@ -38,4 +73,3 @@ class RobotPredictor:
 
     def return_xy_values(self):
         return (self.robotToPredictX, self.robotToPredictY)
-
