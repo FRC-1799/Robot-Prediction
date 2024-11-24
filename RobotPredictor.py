@@ -49,8 +49,7 @@ class RobotPredictor:
         velocityX = currentXPosition - lastXPosition
         accelerationInXDirection = velocityX / timePassed
 
-        # Calculate average velocity
-
+        # Main equation of Kinematics. We can't find the X position without using some form of velocity calculation, so this equation serves that purpose
         predictedXPostition = currentXPosition + velocityX * timeStep + (1/2 * accelerationInXDirection) * timeStep**2
 
         # predictedYPosition = self.coefficients[0] * predictedXPostition**2 + self.coefficients[1] * predictedXPostition + self.coefficients[2]
