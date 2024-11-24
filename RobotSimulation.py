@@ -1,22 +1,15 @@
 import pygame
-import math
-import random
-import numpy as np
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
 from RobotPredictor import RobotPredictor
-
-# Initialize Pygame
 pygame.init()
 
 # Constants
 WINDOW_SIZE = (800, 600)
-FPS = 10
-robotReadingFPS = 2
+FPS = 60
+robotReadingFPS = 10
 ROBOT_SIZE = 20
-MAX_SPEED = 5.0  # Maximum speed
-ACCELERATION_FACTOR = 0.1  # Acceleration rate
-DECELERATION = 0.92  # Deceleration rate
+MAX_SPEED = 5.0
+ACCELERATION_FACTOR = 0.1
+DECELERATION = 0.92
 
 # Colors
 WHITE = (255, 255, 255)
@@ -128,16 +121,14 @@ while running:
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
 
-        draw_parabola([coefficientA, coefficientB, coefficientC], screen, GREEN)
+        
 
         lastPrediction = predictedRobotPosition
 
 
-        # pygame.draw.circle(screen, GREEN, (int(predictedRobotPosition[0]), int(predictedRobotPosition[1])), ROBOT_SIZE)
-
-
     if lastPrediction:
         pygame.draw.circle(screen, GREEN, (int(lastPrediction[0]), int(lastPrediction[1])), ROBOT_SIZE)
+        draw_parabola([coefficientA, coefficientB, coefficientC], screen, GREEN)
 
 
     # Draw predictor robot (blue) after the prediction

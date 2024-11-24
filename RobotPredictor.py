@@ -11,79 +11,57 @@ class RobotPredictor:
 
     def able_to_predict(self, importedPositions):
         self.robotToPredictPos = importedPositions
-        return True if self.robotToPredictPos else False
+
+        if self.robotToPredictPos and len(importedPositions) >= 2:
+            moving = False if self.robotToPredictPos[-1][0] - self.robotToPredictPos[-2][0] == 0 or self.robotToPredictPos[-1][1] - self.robotToPredictPos[-2][1] == 0 else True
+            return True if moving else False
+        else:
+            return False
+            
 
     def distance_formula(self, x1, x2, y1, y2):
         return math.sqrt((x2-x1)**2 + (y2-y1)**2)
-    
-    def correlation_coefficeint(self, maxDegree, xValues, yValues):
-        listOfCorrelationCoefficents = []
-
-        for degree in range(1, maxDegree):
-            coefficients = np.polyfit(xValues, yValues, degree)
-
-            # Calculate the fitted values
-            y_fit = np.polyval(coefficients, xValues)
-            
-            # Compute the correlation coefficient
-            correlationMatrix = np.corrcoef(yValues, y_fit)
-            correlationCoefficient = correlationMatrix[0, 1]
-
-            listOfCorrelationCoefficents.append(correlationCoefficient)
 
     def predict(self, location, otherRobotLocations, timeStep, timePassed):
         self.robotToPredictPos = otherRobotLocations
-        total_velocity_x = 0
-        total_velocity_y = 0
-        num_velocities = 0
 
-        if len(self.robotToPredictPos) >= 2:
-            self.location = location
-            self.robotToPredictX = [xPositions[0] for xPositions in otherRobotLocations]
-            self.robotToPredictY = [yPositions[1] for yPositions in otherRobotLocations]
+        self.location = location
+        self.robotToPredictX = [xPositions[0] for xPositions in otherRobotLocations]
+        self.robotToPredictY = [yPositions[1] for yPositions in otherRobotLocations]
 
-            self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, 2)
+        self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, 2)
 
-            currentXPosition = self.robotToPredictX[-1]
-            lastXPosition = self.robotToPredictX[-2]
-            currentYPosition = self.robotToPredictY[-1]
-            lastYPosition = self.robotToPredictY[-2]
-            
 
-            distanceBetweenTheTwoVariables = self.distance_formula(lastXPosition, currentXPosition, lastYPosition, currentYPosition)
+        currentXPosition = self.robotToPredictX[-1]
+        lastXPosition = self.robotToPredictX[-2]
+        currentYPosition = self.robotToPredictY[-1]
+        lastYPosition = self.robotToPredictY[-2]
+        
 
-            divisor = timePassed / timeStep
+        distanceBetweenTheTwoVariables = self.distance_formula(lastXPosition, currentXPosition, lastYPosition, currentYPosition)
 
-            predictedXPostition = divisor * distanceBetweenTheTwoVariables
+        # print(self.coefficients)
 
-            # print(predictedXPostition)
+        divisor = timePassed / timeStep
 
-            velocityX = currentXPosition - lastXPosition
-            accelerationInXDirection = velocityX / timePassed
+        predictedXPostition = divisor * distanceBetweenTheTwoVariables
 
-            # # Calculate average velocity
+        velocityX = currentXPosition - lastXPosition
+        accelerationInXDirection = velocityX / timePassed
 
-            predictedXPostition = currentXPosition + velocityX * timeStep + (1/2 * accelerationInXDirection) * timeStep**2
+        # Calculate average velocity
 
-            
+        predictedXPostition = currentXPosition + velocityX * timeStep + (1/2 * accelerationInXDirection) * timeStep**2
 
-            
+        # predictedYPosition = self.coefficients[0] * predictedXPostition**2 + self.coefficients[1] * predictedXPostition + self.coefficients[2]
 
-            
-            # # Calculate the distance between the last two positions
-            
-            
+        predictedYPosition = self.coefficients[0] * predictedXPostition**2 + self.coefficients[1] * predictedXPostition + self.coefficients[2]
 
-            # # Predict future position using the LAST position of the target robot
-            # latest_pos = self.robotToPredictPos[-1]
+        self.predictedPosition = (predictedXPostition, predictedYPosition)
 
-            predictedYPosition = self.coefficients[0] * predictedXPostition**2 + self.coefficients[1] * predictedXPostition + self.coefficients[2]
+        return (self.coefficients, self.predictedPosition)
 
-            self.predictedPosition = (predictedXPostition, predictedYPosition)
-
-            return (self.coefficients, self.predictedPosition)
-
-        return None  # Return None if we don't have enough positions to make a prediction
+        # return None  # Return None if we don't have enough positions to make a prediction
 
     def return_xy_values(self):
         return (self.robotToPredictX, self.robotToPredictY)
