@@ -36,7 +36,7 @@ class RobotPredictor:
         self.robotToPredictY = [yPositions[1] for yPositions in otherRobotLocations]
 
         # Uses a second degree polynomial because robot mostly moves in a parabola
-        self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, 2)
+        self.coefficients = np.polyfit(self.robotToPredictX, self.robotToPredictY, self.degree)
 
         currentXPosition = self.robotToPredictX[-1]
         lastXPosition = self.robotToPredictX[-2]

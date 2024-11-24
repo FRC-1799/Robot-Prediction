@@ -1,5 +1,6 @@
 import pygame
 from RobotPredictor import RobotPredictor
+import test_predictor
 pygame.init()
 
 # Constants
@@ -30,6 +31,9 @@ robotToPredictLocations = []  # Stores the robot to predict's locations
 
 # Initialize predictor
 predictor = RobotPredictor(robotReadingFPS)
+
+
+
 
 frame_counter = 0
 
