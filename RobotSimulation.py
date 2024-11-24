@@ -1,15 +1,17 @@
 import pygame
 from RobotPredictor import RobotPredictor
+import test_predictor
 pygame.init()
 
 # Constants
 WINDOW_SIZE = (800, 600)
 FPS = 60
-robotReadingFPS = 10
+ROBOTREADINGFPS = 10
 ROBOT_SIZE = 20
 MAX_SPEED = 5.0
 ACCELERATION_FACTOR = 0.1
 DECELERATION = 0.92
+DEGREE = 2
 
 # Colors
 WHITE = (255, 255, 255)
@@ -29,7 +31,7 @@ ourRobotPos = [200, 300]  # Starting position for predictor robot
 robotToPredictLocations = []  # Stores the robot to predict's locations
 
 # Initialize predictor
-predictor = RobotPredictor(robotReadingFPS)
+predictor = RobotPredictor()
 
 frame_counter = 0
 
@@ -114,9 +116,9 @@ while running:
 
     # Predict the next position of the target robot
     frame_counter += 1
-    if frame_counter >= (FPS // robotReadingFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
+    if frame_counter >= (FPS // ROBOTREADINGFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
         frame_counter = 0
-        coefficients = predictor.predict(ourRobotPos, robotToPredictLocations, time_step, clock.get_time())
+        coefficients = predictor.predict(robotToPredictLocations, time_step, clock.get_time())
         coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0][0], coefficients[0][1], coefficients[0][2], coefficients[1]
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
