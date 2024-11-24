@@ -116,7 +116,7 @@ while running:
     frame_counter += 1
     if frame_counter >= (FPS // robotReadingFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
         frame_counter = 0
-        coefficients = predictor.predict(ourRobotPos, robotToPredictLocations, time_step, clock.get_time())
+        coefficients = predictor.predict(robotToPredictLocations, time_step, clock.get_time())
         coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0][0], coefficients[0][1], coefficients[0][2], coefficients[1]
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
