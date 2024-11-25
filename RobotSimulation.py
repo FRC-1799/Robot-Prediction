@@ -1,6 +1,5 @@
 import pygame
 from RobotPredictor import RobotPredictor
-import test_predictor
 pygame.init()
 
 # Constants
@@ -122,8 +121,6 @@ while running:
         coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0][0], coefficients[0][1], coefficients[0][2], coefficients[1]
         robotToPredictXValues = predictor.return_xy_values()[0]
         robotToPredictYValues = predictor.return_xy_values()[1]
-
-        
 
         lastPrediction = predictedRobotPosition
 
