@@ -1,11 +1,13 @@
 import pygame
 from RobotPredictor import RobotPredictor
+import time
+
 pygame.init()
 
 # Constants
 WINDOW_SIZE = (800, 600)
 FPS = 60
-ROBOTREADINGFPS = 10
+ROBOTREADINGFPS = 5
 ROBOT_SIZE = 20
 MAX_SPEED = 5.0
 ACCELERATION_FACTOR = 0.1
@@ -39,9 +41,10 @@ coefficients = None
 changeX, changeY = 0, 0
 accelX, accelY = 0, 0
 
-time_step = 6 # amout of time to go ahead by
+time_step = 3 # amout of time to go ahead by
 
 lastPrediction = []
+last_prediction_time = 0
 
 def draw_parabola(coefficients, screen, color, step=1):
     """Draws a parabola based on the given coefficients."""
@@ -113,16 +116,35 @@ while running:
                       (int(robotToPredictPos[0]), int(robotToPredictPos[1])), 
                       ROBOT_SIZE)
 
+    
     # Predict the next position of the target robot
     frame_counter += 1
+
+
     if frame_counter >= (FPS // ROBOTREADINGFPS) and predictor.able_to_predict(robotToPredictLocations):  # Every 6 frames at 60 FPS
         frame_counter = 0
-        coefficients = predictor.predict(robotToPredictLocations, time_step, clock.get_time())
-        coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0][0], coefficients[0][1], coefficients[0][2], coefficients[1]
-        robotToPredictXValues = predictor.return_xy_values()[0]
-        robotToPredictYValues = predictor.return_xy_values()[1]
 
-        lastPrediction = predictedRobotPosition
+        # Get the current time
+        current_time = time.time()  # Current time in seconds (floating-point)
+
+        # Calculate time since last prediction
+        if last_prediction_time != 0:
+            time_since_last_prediction = current_time - last_prediction_time
+            print(f"Time since last prediction: {time_since_last_prediction} seconds")
+            
+            coefficients = predictor.predict(robotToPredictLocations, time_step, time_since_last_prediction)
+            coefficientA, coefficientB, coefficientC, predictedRobotPosition = coefficients[0][0], coefficients[0][1], coefficients[0][2], coefficients[1]
+            robotToPredictXValues = predictor.return_xy_values()[0]
+            robotToPredictYValues = predictor.return_xy_values()[1]
+
+            lastPrediction = predictedRobotPosition
+
+        # Update the last prediction time
+        last_prediction_time = current_time
+
+
+        
+
 
 
     if lastPrediction:
